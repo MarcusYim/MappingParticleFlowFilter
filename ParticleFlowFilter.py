@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import filterpy
+from scipy.stats import binned_statistic_dd
 from filterpy.kalman import KalmanFilter
 from numpy.ma.extras import average
 from scipy.interpolate import griddata
@@ -39,6 +40,11 @@ def grad_log_y_giv_x(x_1, y, xs):
 
 def grad_log_x(x_1):
     return np.dot(inv_prior_cov, x_1 - prior_mean)
+
+def grad_log_x_hist(xs):
+    stats, edges, indexes = binned_statistic_dd(xs, np.arange(len(xs)), bins=[[1, 2, 3, 4, 5, 6]],
+                                                            expand_binnumbers=True)
+
 
 def grad_log_x_giv_y(x_1, y, xs):
     return grad_log_y_giv_x(x_1, y, xs) + grad_log_x(x_1)
@@ -87,12 +93,12 @@ average_diff = 100
 moving_av = 0
 
 #haha this kind of works
-while moving_av < 0.8:
+while moving_av < 0.9:
     flows = flow_matrix(xs_pff, y, D)
     xs_pff = xs_pff + ds * flows
 
     average_diff = np.average(np.abs(np.subtract(flows, last_flows)))
-    if 0.005 > average_diff > -0.005:
+    if 0.0025 > average_diff > -0.0025:
         consecutive_decrease += 1
         if consecutive_decrease == 10:
             print("decrease")
