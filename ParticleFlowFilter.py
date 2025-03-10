@@ -56,8 +56,8 @@ def grad_log_x_hist(xs):
     )
 
     grad = np.array(np.gradient(counts))
-    vectorized_grad = [[grad[i][id] for i in range(grad.shape[0])] for id, value in np.ndenumerate(grad[0])]
-    return vectorized_grad
+    vectorized_grad = np.array([[grad[i][id] for i in range(grad.shape[0])] for id, value in np.ndenumerate(grad[0])])
+    return vectorized_grad[indexes]
 
 
 def grad_log_x_giv_y(x_1, y, xs):
