@@ -19,6 +19,8 @@ obs_cov = np.dot(rand.T, rand)
 inv_obs_cov = np.linalg.inv(obs_cov)
 prior_mean = np.random.rand(Np)
 
+num_bins = 20
+
 #a load of equations (have fun)
 def K(x_1, x_2):
     return np.exp(-(1/2) * np.dot(np.dot(np.transpose(x_1 - x_2), al_inv_prior_cov), x_1 - x_2))
@@ -42,8 +44,20 @@ def grad_log_x(x_1):
     return np.dot(inv_prior_cov, x_1 - prior_mean)
 
 def grad_log_x_hist(xs):
-    stats, edges, indexes = binned_statistic_dd(xs, np.arange(len(xs)), bins=[[1, 2, 3, 4, 5, 6]],
-                                                            expand_binnumbers=True)
+    maxes = np.max(xs, axis=0)
+    mins = np.min(xs, axis=0)
+    bins = [np.linspace(mi, ma, num_bins) for mi, ma in zip(mins, maxes)]
+    counts, edges, indexes = binned_statistic_dd(
+        xs,
+        np.arange(len(xs)),
+        bins=bins,
+        expand_binnumbers=True,
+        statistic="count"
+    )
+
+    grad = np.array(np.gradient(counts))
+    vectorized_grad = [[grad[i][id] for i in range(grad.shape[0])] for id, value in np.ndenumerate(grad[0])]
+    return vectorized_grad
 
 
 def grad_log_x_giv_y(x_1, y, xs):
@@ -71,6 +85,7 @@ def MA(old_av, new):
     return old_av * (19 / 20) + new / 20
 
 xs_pff = np.random.multivariate_normal(prior_mean, prior_cov, 100)
+print(grad_log_x_hist(xs_pff))
 
 xa_pff = xs_pff
 
